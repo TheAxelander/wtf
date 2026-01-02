@@ -48,7 +48,7 @@ def select_file_via_fzf(directory):
             exit(1)
             
         selected_file = subprocess.check_output(
-            ['fzf', '--preview', f'{preview_command} {{}}'],  # Run fzf and show a preview of the file content
+            ['fzf', '--preview', f'{preview_command} {{}}', '--preview-window', 'top:75%'],  # Run fzf and show a preview of the file content
             cwd=str(directory),  # working directory
             text=True
         ).strip()
