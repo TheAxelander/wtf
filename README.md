@@ -30,7 +30,7 @@ pip install -r requirements.txt
 
 ## Usage
 
-Without any parameter `fzf` is used to select a file which is then rendered. 
+Without any parameter `fzf` is used to select a file which is then rendered.
 
 ``` bash
 wtf
@@ -51,7 +51,7 @@ wtf tmux
 See below example config file which is required in `~/.config/wtf/wtf.conf`
 
 ``` ini
-CHEATSHEET_REPO=/home/axelander/.local/wtf
+CHEATSHEET_REPO=/home/axelander/.local/share/wtf
 TABLE_DELIMITER=|
 PREVIEW_COMMAND=cat #You could also use wtf itself to render the file inside the fzf preview
 ```
