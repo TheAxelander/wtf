@@ -4,11 +4,13 @@ from dotenv import dotenv_values
 from rich.console import Console
 from rich.table import Table
 from pathlib import Path
+from wtf.__about__ import __version__
 
 console = Console()
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--version", "-v", action="version", version=f"wtf {__version__}")
     parser.add_argument('sheet', nargs='?', type=str, help="Specific cheatsheet which should be printed")
 
     try:
@@ -23,7 +25,6 @@ def main():
         render_file(directory / args.sheet)
     else:
         select_file_via_fzf(directory)
-
 
 def get_config():
     """
