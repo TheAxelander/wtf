@@ -64,10 +64,11 @@ def select_file_via_fzf(directory):
 
         if selected_file:
             render_file(directory / selected_file)
-        else:
-            return
 
     except subprocess.CalledProcessError as e:
+        # Exit code 130 means user pressed ESC, handle silently
+        if e.returncode == 130:
+            return
         console.print(f"[bold red]Error with fzf command: {e}[/bold red]")
 
 
