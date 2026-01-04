@@ -26,6 +26,9 @@ def main():
 
 
 def get_config():
+    """
+    Reads configuration from the wtf.conf file. Returns a dictionary of configuration values.
+    """
     config_path = Path.home() / '.config' / 'wtf' / 'wtf.conf'
     if not config_path.exists():
         raise FileNotFoundError(f"Config file not found: {config_path}")
@@ -34,6 +37,11 @@ def get_config():
 
 
 def select_file_via_fzf(directory):
+    """
+    Runs fzf to allow the user to select a file from the given directory.
+    
+    :param directory: Path object representing the directory to list files from.
+    """
     if not directory.exists():
         console.print(f"[bold red]Directory {directory} does not exist![/bold red]")
         exit(1)
@@ -48,19 +56,27 @@ def select_file_via_fzf(directory):
             exit(1)
             
         selected_file = subprocess.check_output(
-            ['fzf', '--preview', f'{preview_command} {{}}', '--preview-window', 'top:75%'],  # Run fzf and show a preview of the file content
+            # Run fzf and show a preview of the file content
+            ['fzf', '--preview', f'{preview_command} {{}}', '--preview-window', 'top:75%'],
             cwd=str(directory),  # working directory
             text=True
         ).strip()
 
         if selected_file:
             render_file(directory / selected_file)
+        else:
+            return
 
     except subprocess.CalledProcessError as e:
         console.print(f"[bold red]Error with fzf command: {e}[/bold red]")
 
 
 def render_file(file_path):
+    """
+    Renders the content of the given file as a table in the terminal.
+    
+    :param file_path: Path object representing the file to be rendered
+    """
     if not file_path.exists():
         console.print(f"[red]File not found: {file_path}[/red]")
         return
