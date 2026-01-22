@@ -3,3 +3,12 @@
 /dist
 /*.egg-info
 .env
+
+# Claude plugin claude-mem
+**/CLAUDE.md
+!/CLAUDE.md
+
+# Claude plugin planning-with-files
+task_plan.md
+progress.md
+findings.md
