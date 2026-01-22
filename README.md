@@ -28,6 +28,16 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Configuration
+
+See below example config file which is required in `~/.config/wtf/wtf.conf`
+
+``` ini
+CHEATSHEET_REPO=~/.local/share/wtf
+TABLE_DELIMITER=|
+PREVIEW_COMMAND=cat #You could also use wtf itself to render the file inside the fzf preview
+```
+
 ## Usage
 
 Without any parameter `fzf` is used to select a file which is then rendered.
@@ -46,14 +56,10 @@ wtf tmux
 >>> tmux file will be displayed
 ```
 
-## Configuration
+By passing `--update-repo` you can pull the latest changes for your cheatsheet repo
 
-See below example config file which is required in `~/.config/wtf/wtf.conf`
-
-``` ini
-CHEATSHEET_REPO=~/.local/share/wtf
-TABLE_DELIMITER=|
-PREVIEW_COMMAND=cat #You could also use wtf itself to render the file inside the fzf preview
+``` bash
+wtf --update-repo
 ```
 
 ## Example file

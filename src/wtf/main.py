@@ -11,7 +11,7 @@ console = Console()
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--version", "-v", action="version", version=f"wtf {__version__}")
-    parser.add_argument("--update-repo", action="store_true", help="Update the cheatsheet repository via git pull --rebase")
+    parser.add_argument("--update-repo", action="store_true", help="Update cheatsheet repository")
     parser.add_argument('sheet', nargs='?', type=str, help="Specific cheatsheet which should be printed")
 
     try:
@@ -68,7 +68,7 @@ def update_repo(directory):
 def select_file_via_fzf(directory):
     """
     Runs fzf to allow the user to select a file from the given directory.
-    
+
     :param directory: Path object representing the directory to list files from.
     """
     if not directory.exists():
@@ -83,7 +83,7 @@ def select_file_via_fzf(directory):
         except Exception as e:
             console.print(f"[bold red]Error reading config: {e}[/bold red]")
             exit(1)
-            
+
         selected_file = subprocess.check_output(
             # Run fzf and show a preview of the file content
             ['fzf', '--preview', f'{preview_command} {{}}', '--preview-window', 'top:75%'],
@@ -104,7 +104,7 @@ def select_file_via_fzf(directory):
 def render_file(file_path):
     """
     Renders the content of the given file as a table in the terminal.
-    
+
     :param file_path: Path object representing the file to be rendered
     """
     if not file_path.exists():
