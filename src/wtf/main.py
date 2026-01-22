@@ -11,6 +11,7 @@ console = Console()
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--version", "-v", action="version", version=f"wtf {__version__}")
+    parser.add_argument("--update-repo", action="store_true", help="Update the cheatsheet repository via git pull --rebase")
     parser.add_argument('sheet', nargs='?', type=str, help="Specific cheatsheet which should be printed")
 
     try:
@@ -21,6 +22,9 @@ def main():
         exit(1)
 
     args = parser.parse_args()
+    if args.update_repo:
+        update_repo(directory)
+        return
     if args.sheet:
         render_file(directory / args.sheet)
     else:
@@ -35,6 +39,30 @@ def get_config():
         raise FileNotFoundError(f"Config file not found: {config_path}")
 
     return dotenv_values(config_path)
+
+
+def update_repo(directory):
+    """
+    Updates the cheatsheet repository by running git pull --rebase.
+
+    :param directory: Path object representing the cheatsheet repository directory.
+    """
+    if not directory.exists():
+        console.print(f"[bold red]Directory {directory} does not exist![/bold red]")
+        exit(1)
+
+    try:
+        subprocess.run(
+            ['git', 'pull', '--rebase'],
+            cwd=str(directory),
+            check=True
+        )
+    except subprocess.CalledProcessError as e:
+        console.print(f"[bold red]Git pull failed with exit code {e.returncode}[/bold red]")
+        exit(1)
+    except FileNotFoundError:
+        console.print("[bold red]Git is not installed or not in PATH[/bold red]")
+        exit(1)
 
 
 def select_file_via_fzf(directory):
