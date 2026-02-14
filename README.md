@@ -40,7 +40,7 @@ PREVIEW_COMMAND=cat #You could also use wtf itself to render the file inside the
 
 ## Usage
 
-Without any parameter `fzf` is used to select a file which is then rendered.
+Without any parameter `fzf` is used to select a file which is then rendered. The content must be Markdown-based.
 
 ``` bash
 wtf
@@ -60,18 +60,4 @@ By passing `--update-repo` you can pull the latest changes for your cheatsheet r
 
 ``` bash
 wtf --update-repo
-```
-
-## Example file
-
-Files need to be written to be compatible with [Rich](https://github.com/Textualize/rich) to render a table like below. The first line will be displayed as header.
-
-```
-Command                 |Description
-tmux                    |New session
-tmux new                |New session
-tmux new -s sessionname |New session with name
-tmux a                  |Attach session
-tmux a -t sessionname   |Attach to named session
-[bold cyan]CTRL[/bold cyan] + [bold cyan]B[/bold cyan] [bold yellow]D[/bold yellow]|Detach session
 ```
