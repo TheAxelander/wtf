@@ -108,8 +108,10 @@ def render_file(file_path):
         :param file_path: Path object representing the file to be rendered
         """
     if not file_path.exists():
-        console.print(f"[red]File not found: {file_path}[/red]")
-        return
+        file_path = file_path.with_suffix('.md')
+        if not file_path.exists():
+            console.print(f"[red]File not found: {file_path}[/red]")
+            return
 
     with open(file_path, 'r') as f:
         content = f.read()
