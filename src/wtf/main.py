@@ -2,7 +2,7 @@ import argparse
 import subprocess
 from dotenv import dotenv_values
 from rich.console import Console
-from rich.table import Table
+from rich.markdown import Markdown
 from pathlib import Path
 from wtf.__about__ import __version__
 
@@ -103,41 +103,19 @@ def select_file_via_fzf(directory):
 
 def render_file(file_path):
     """
-    Renders the content of the given file as a table in the terminal.
+        Renders the content of the given Markdown file in the terminal.
 
-    :param file_path: Path object representing the file to be rendered
-    """
+        :param file_path: Path object representing the file to be rendered
+        """
     if not file_path.exists():
         console.print(f"[red]File not found: {file_path}[/red]")
         return
 
-    try:
-        config = get_config()
-        delimiter = config.get('TABLE_DELIMITER', ',')
-    except Exception as e:
-        console.print(f"[bold red]Error reading config: {e}[/bold red]")
-        exit(1)
-
     with open(file_path, 'r') as f:
-        lines = [line.strip() for line in f if line.strip()]
+        content = f.read()
 
-    if not lines:
-        console.print("[yellow]File is empty.[/yellow]")
-        return
-
-    headers = lines[0].split(delimiter)
-    table = Table(show_header=True, header_style="bold cyan", show_lines=True)
-
-    for header in headers:
-        table.add_column(header.strip())
-    table.columns[0].no_wrap=True
-
-    for line in lines[1:]:
-        row = [col.strip() for col in line.split(delimiter)]
-        table.add_row(*row)
-
-    console.print(table)
-
+    md = Markdown(content)
+    console.print(md)
 
 if __name__ == '__main__':
     main()
