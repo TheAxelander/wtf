@@ -34,7 +34,6 @@ See below example config file which is required in `~/.config/wtf/wtf.conf`
 
 ``` ini
 CHEATSHEET_REPO=~/.local/share/wtf
-TABLE_DELIMITER=|
 PREVIEW_COMMAND=cat #You could also use wtf itself to render the file inside the fzf preview
 ```
 
