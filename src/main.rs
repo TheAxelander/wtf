@@ -47,7 +47,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
 
-    // TODO Add selection via fzf
+    select_file_via_fzf(&path)?;
+
     Ok(())
 }
 
@@ -102,6 +103,34 @@ fn update_repo(directory: &PathBuf) -> Result<(), Box<dyn Error>> {
             .unwrap_or(-1))
             .into())
     }
+}
+
+fn select_file_via_fzf(directory: &PathBuf) -> Result<(), Box<dyn Error>> {
+    directory.try_exists()?;
+
+    let preview_command = "cat"; // TODO Get from config
+
+    let output = Command::new("fzf")
+        .args(["--preview", &format!("{} {{}}", preview_command), "--preview-window", "top:75%"])
+        .current_dir(directory)
+        .output()
+        .map_err(|e| format!("Unable to run fzf: {e}"))?;
+
+    if !output.status.success() {
+        // Exit code 130 means user pressed ESC, handle silently
+        if output.status.code() == Some(130) {
+            return Ok(());
+        }
+        let status_code = output.status.code().unwrap_or(-1);
+        return Err(format!("fzf failed with exit code {}", status_code).into());
+    }
+
+    let selected_file = String::from_utf8(output.stdout)?
+        .trim()
+        .to_string();
+    render_file(&directory.join(selected_file))?;
+
+    Ok(())
 }
 
 fn render_file(file_path: &PathBuf) -> Result<(), Box<dyn Error>> {
