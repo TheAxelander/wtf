@@ -1,16 +1,14 @@
-name: Publish Console App
+name: Test Build
 
 on:
   push:
-    tags:
-      - "*"
+    branches:
+      - wtf-rust
 
 jobs:
-  publish:
+  build:
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
-    permissions:
-      contents: write
 
     strategy:
       matrix:
@@ -18,12 +16,10 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             artifact_name: wtf
-            asset_name: wtf-linux-x86_64
 
           - os: macos-latest
             target: aarch64-apple-darwin
             artifact_name: wtf
-            asset_name: wtf-macos-aarch64
 
     steps:
       - uses: actions/checkout@v4
@@ -36,8 +32,9 @@ jobs:
       - name: Build binary
         run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Upload binary to GitHub release
-        uses: softprops/action-gh-release@v2
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: ${{ matrix.artifact_name }}-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+          retention-days: 5
