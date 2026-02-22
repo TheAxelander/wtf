@@ -52,26 +52,21 @@ fn run() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+/// Reads configuration from the wtf.conf file. Returns a HashMap of configuration values.
 fn get_config() -> Result<HashMap<String, String>, Box<dyn Error>> {
     let config_path = dirs::home_dir()
         .ok_or("Could not determine home directory")?
         .join(".config/wtf/wtf.conf");
-
-    /*
-    if !matches!(config_path.try_exists(), Ok(true)) {
-        return Err(format!("Config file not found: {}", config_path.display()).into());
-    }
-    */
 
     dotenvy::from_path_override(&config_path)
         .map_err(|e| format!("Config file not found: {e}"))?;
 
     let mut result: HashMap<String, String> = Default::default();
 
+    // CHEATSHEET_REPO
     let key = "CHEATSHEET_REPO".to_string();
     let val = env::var(&key)
         .map_err(|_| "Cheatsheet repo not defined in config")?;
-
     // Expand ~ to home directory
     let expanded = if val.starts_with("~/") {
         dirs::home_dir()
@@ -82,12 +77,18 @@ fn get_config() -> Result<HashMap<String, String>, Box<dyn Error>> {
     } else {
         val
     };
-
     result.insert(key, expanded);
+
+    // PREVIEW_COMMAND
+    let key = "PREVIEW_COMMAND".to_string();
+    if let Ok(val) = env::var(&key) {
+        result.insert(key, val);
+    }
 
     Ok(result)
 }
 
+/// Updates the cheatsheet repository from the passed directory by running `git pull --rebase`.
 fn update_repo(directory: &PathBuf) -> Result<(), Box<dyn Error>> {
     let status = Command::new("git")
         .args(["pull", "--rebase"])
@@ -105,11 +106,16 @@ fn update_repo(directory: &PathBuf) -> Result<(), Box<dyn Error>> {
     }
 }
 
+/// Runs `fzf` to allow the user to select a file from the given directory.
 fn select_file_via_fzf(directory: &PathBuf) -> Result<(), Box<dyn Error>> {
     directory.try_exists()?;
 
-    let preview_command = "cat"; // TODO Get from config
+    let config = get_config()?;
 
+    let preview_command = config.get("PREVIEW_COMMAND")
+        .map(String::as_str)
+        .unwrap_or("cat");
+        
     let output = Command::new("fzf")
         .args(["--preview", &format!("{} {{}}", preview_command), "--preview-window", "top:75%"])
         .current_dir(directory)
@@ -136,6 +142,7 @@ fn select_file_via_fzf(directory: &PathBuf) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+/// Renders the content of the given Markdown file in the terminal.
 fn render_file(file_path: &PathBuf) -> Result<(), Box<dyn Error>> {
     let mut path = file_path.clone();
     if !matches!(path.try_exists(), Ok(true)) {
