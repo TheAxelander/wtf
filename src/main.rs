@@ -19,44 +19,33 @@ struct Args {
 }
 
 fn main() {
-    let args = Args::parse();
-
-    let config = get_config();
-    match config {
-        Ok(config) => {
-            if args.update_repo {
-                let err: String;
-                if let Some(val) = config.get("CHEATSHEET_REPO") {
-                    let path = PathBuf::from_str(val);
-                    match path {
-                        Ok(path) => {
-                            let update_repo_result = update_repo(&path);
-                            match update_repo_result {
-                                Ok(_) => return,
-                                Err(e) => err = format!("{e}"),
-                            }
-                        }
-                        Err(_) => err = "CHEATSHEET_REPO is not a valid path".to_string()
-                    }
-
-                } else {
-                    err = "CHEATSHEET_REPO not defined".to_string();
-
-                }
-                println!("{err}");
-                return;
-            }
-
-            if let Some(sheet) = args.sheet {
-                render_file();
-                return;
-            }
-        }
-        Err(e) => {
-            println!("Error reading config {e}");
-            return;
-        }
+    if let Err(e) = run() {
+        eprintln!("Error: {e}");
+        std::process::exit(1);
     }
+}
+
+fn run() -> Result<(), Box<dyn Error>> {
+    let args = Args::parse();
+    let config = get_config()?;
+
+    if args.update_repo {
+        let repo_path = config
+            .get("CHEATSHEET_REPO")
+            .ok_or("CHEATSHEET_REPO not defined")?;
+
+        let path = PathBuf::from_str(repo_path)
+            .map_err(|_| "CHEATSHEET_REPO is not a valid path")?;
+
+        update_repo(&path)?;
+        return Ok(());
+    }
+
+    if let Some(_sheet) = args.sheet {
+        render_file();
+    }
+
+    Ok(())
 }
 
 fn get_config() -> Result<HashMap<String, String>, Box<dyn Error>> {
@@ -70,28 +59,27 @@ fn get_config() -> Result<HashMap<String, String>, Box<dyn Error>> {
     }
     */
 
-    if !matches!(dotenvy::from_path_override(&config_path), Ok(())) {
-        return Err(format!("Config file not found: {}", &config_path.display()).into());
-    }
+    dotenvy::from_path_override(&config_path)
+        .map_err(|e| format!("Config file not found: {e}"))?;
 
     let mut result: HashMap<String, String> = Default::default();
 
     let key = "CHEATSHEET_REPO".to_string();
-    if let Ok(val) = env::var(&key) {
-        // Expand ~ to home directory
-        let expanded = if val.starts_with("~/") {
-            dirs::home_dir()
-                .ok_or("Could not determine home directory")?
-                .join(&val[2..])
-                .to_string_lossy()
-                .to_string()
-        } else {
-            val
-        };
-        result.insert(key, expanded);
+    let val = env::var(&key)
+        .map_err(|_| "Cheatsheet repo not defined in config")?;
+
+    // Expand ~ to home directory
+    let expanded = if val.starts_with("~/") {
+        dirs::home_dir()
+            .ok_or("Could not determine home directory")?
+            .join(&val[2..])
+            .to_string_lossy()
+            .to_string()
     } else {
-        return Err("Cheatsheet repo not defined in config".to_string().into());
-    }
+        val
+    };
+
+    result.insert(key, expanded);
 
     Ok(result)
 }
@@ -100,11 +88,13 @@ fn update_repo(directory: &PathBuf) -> Result<(), String> {
     let status = Command::new("git")
         .args(["pull", "--rebase"])
         .current_dir(directory)
-        .status();
+        .status()
+        .map_err(|e| format!("Unable to run git pull: {e}"))?;
 
-    match status {
-        Ok(_) => Ok(()),
-        Err(e) => Err(format!("Unable to run git pull: {e}"))
+    if status.success() {
+        Ok(())
+    } else {
+        Err(format!("Git pull failed with exit code {}", status.code().unwrap_or(-1)))
     }
 }
 
