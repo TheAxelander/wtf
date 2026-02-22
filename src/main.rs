@@ -1,10 +1,11 @@
 use clap::Parser;
 use std::collections::HashMap;
-use std::env;
+use std::{env, fs};
 use std::error::Error;
 use std::path::PathBuf;
 use std::process::Command;
 use std::str::FromStr;
+use termimad::MadSkin;
 
 #[derive(Parser)]
 #[command(name = "wtf")]
@@ -29,22 +30,24 @@ fn run() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     let config = get_config()?;
 
+    let repo_path = config
+        .get("CHEATSHEET_REPO")
+        .ok_or("CHEATSHEET_REPO not defined")?;
+
+    let path = PathBuf::from_str(repo_path)
+        .map_err(|_| "CHEATSHEET_REPO is not a valid path")?;
+
     if args.update_repo {
-        let repo_path = config
-            .get("CHEATSHEET_REPO")
-            .ok_or("CHEATSHEET_REPO not defined")?;
-
-        let path = PathBuf::from_str(repo_path)
-            .map_err(|_| "CHEATSHEET_REPO is not a valid path")?;
-
         update_repo(&path)?;
         return Ok(());
     }
 
-    if let Some(_sheet) = args.sheet {
-        render_file();
+    if let Some(sheet) = args.sheet {
+        render_file(&path.join(sheet))?;
+        return Ok(());
     }
 
+    // TODO Add selection via fzf
     Ok(())
 }
 
@@ -84,7 +87,7 @@ fn get_config() -> Result<HashMap<String, String>, Box<dyn Error>> {
     Ok(result)
 }
 
-fn update_repo(directory: &PathBuf) -> Result<(), String> {
+fn update_repo(directory: &PathBuf) -> Result<(), Box<dyn Error>> {
     let status = Command::new("git")
         .args(["pull", "--rebase"])
         .current_dir(directory)
@@ -94,10 +97,26 @@ fn update_repo(directory: &PathBuf) -> Result<(), String> {
     if status.success() {
         Ok(())
     } else {
-        Err(format!("Git pull failed with exit code {}", status.code().unwrap_or(-1)))
+        Err(format!("Git pull failed with exit code {}", status
+            .code()
+            .unwrap_or(-1))
+            .into())
     }
 }
 
-fn render_file() {
-    // TODO Implement file output
+fn render_file(file_path: &PathBuf) -> Result<(), Box<dyn Error>> {
+    let mut path = file_path.clone();
+    if !matches!(path.try_exists(), Ok(true)) {
+        path.set_extension("md");
+        if !matches!(path.try_exists(), Ok(true)) {
+            return Err(format!("File not found: {}", path.display()).into());
+        }
+    }
+
+    let content = fs::read_to_string(&path)?;
+    let skin = MadSkin::default();
+
+    println!("{}", skin.term_text(&content));
+
+    Ok(())
 }
