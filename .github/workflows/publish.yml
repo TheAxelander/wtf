@@ -36,8 +36,13 @@ jobs:
       - name: Build binary
         run: cargo build --release --target ${{ matrix.target }}
 
+      - name: Rename binary
+        run: |
+          cp target/${{ matrix.target }}/release/${{ matrix.artifact_name }} \
+             target/${{ matrix.target }}/release/${{ matrix.asset_name }}
+
       - name: Upload binary to GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
+          files: target/${{ matrix.target }}/release/${{ matrix.asset_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
