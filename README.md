@@ -11,22 +11,7 @@
 
 ## Installation
 
-Download [latest release](https://github.com/TheAxelander/wtf/releases/latest) and install it via `pipx`
-
-``` bash
-apt install python3 python3-pipx
-pipx install wtf-x.x.x-py3-none-any.whl
-```
-
-Optionally create a venv for development
-
-``` bash
-git clone https://github.com/TheAxelander/wtf.git
-cd wtf
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
+Download [latest release](https://github.com/TheAxelander/wtf/releases/latest), extract the binary and place it somewhere like in `~/.local/bin/`
 
 ## Configuration
 
