@@ -113,6 +113,8 @@ fn select_file_via_fzf(directory: &PathBuf) -> Result<(), Box<dyn Error>> {
     let output = Command::new("fzf")
         .args(["--preview", &format!("{} {{}}", preview_command), "--preview-window", "top:75%"])
         .current_dir(directory)
+        .stdin(std::process::Stdio::inherit())
+        .stdout(std::process::Stdio::piped())
         .output()
         .map_err(|e| format!("Unable to run fzf: {e}"))?;
 
@@ -128,6 +130,7 @@ fn select_file_via_fzf(directory: &PathBuf) -> Result<(), Box<dyn Error>> {
     let selected_file = String::from_utf8(output.stdout)?
         .trim()
         .to_string();
+
     render_file(&directory.join(selected_file))?;
 
     Ok(())
